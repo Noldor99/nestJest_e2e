@@ -4,15 +4,15 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Power } from '../src/entity/power.entity';
-import { CreatePowerDto } from 'src/power/dto/create-power.dto';
 import * as supertest from 'supertest';
 import CONNECTION from '../src/database/db.connection';
 import { PowerModule } from '../src/power/power.module';
 import { Hero } from '../src/entity/hero.entity';
+import { CreateHeroDto } from 'src/hero/dto/create-hero.dto';
+import { HeroModule } from '../src/hero/hero.module';
 
-describe('/power (e2e)', () => {
+describe('/hero (e2e)', () => {
   let app: INestApplication;
-  let createdPowerId: number;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -24,6 +24,7 @@ describe('/power (e2e)', () => {
           synchronize: true,
         }),
         PowerModule,
+        HeroModule,
       ],
     }).compile();
 
@@ -35,38 +36,22 @@ describe('/power (e2e)', () => {
     await app.close();
   });
 
-  it('/power (POST)', async () => {
-    const createPowerDto: CreatePowerDto = { power: 'TestPower', heroId: 1 };
+  it('/hero (POST)', async () => {
+    const createHeroDto: CreateHeroDto = {
+      nickname: 'Superman',
+      real_name: 'Clark Kent',
+      origin_description: 'He was born Kal-El on the planet Krypton...',
+      catch_phrase: 'Look, up in the sky',
+    };
 
     const response = await supertest(app.getHttpServer())
-      .post('/power')
-      .send(createPowerDto)
+      .post('/hero')
+      .send(createHeroDto)
       .set('Content-Type', 'application/json')
       .set('Accept', 'application/json');
 
+    console.log(response.body);
     expect(response.status).toBe(201);
-    createdPowerId = response.body.id;
-  });
-
-  it('/power/:id (DELETE)', async () => {
-    const createPowerDto: CreatePowerDto = { power: 'TestPower', heroId: 1 };
-
-    const createPowerResponse = await supertest(app.getHttpServer())
-      .post('/power')
-      .send(createPowerDto)
-      .set('Content-Type', 'application/json')
-      .set('Accept', 'application/json');
-
-    expect(createPowerResponse.status).toBe(201);
-    expect(typeof createPowerResponse).toBe('object');
-    expect(createPowerResponse.body).toHaveProperty('power');
-
-    const deletePowerResponse = await supertest(app.getHttpServer())
-      .delete(`/power/${createPowerResponse.body.id}`)
-      .set('Content-Type', 'application/json')
-      .set('Accept', 'application/json');
-
-    expect(deletePowerResponse.status).toBe(200);
-    expect(typeof deletePowerResponse.body).toBe('object');
+    expect(response.body).toHaveProperty('nickname', createHeroDto.nickname);
   });
 });
