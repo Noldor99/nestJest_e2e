@@ -1,42 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Power } from '../src/entity/power.entity';
 import * as supertest from 'supertest';
-import CONNECTION from '../src/database/db.connection';
-import { PowerModule } from '../src/power/power.module';
-import { Hero } from '../src/entity/hero.entity';
 import { CreateHeroDto } from 'src/hero/dto/create-hero.dto';
-import { HeroModule } from '../src/hero/hero.module';
 import { UpdateHeroDto } from 'src/hero/dto/update-hero.dto';
+import { app } from './test-setup';
 
 describe('/hero (e2e)', () => {
-  let app: INestApplication;
-
-  beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [
-        //@ts-ignore
-        TypeOrmModule.forRoot({
-          ...CONNECTION,
-          entities: [Power, Hero],
-          synchronize: true,
-        }),
-        PowerModule,
-        HeroModule,
-      ],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    await app.init();
-  });
-
-  afterAll(async () => {
-    await app.close();
-  });
-
   const createHeroDto: CreateHeroDto = {
     nickname: 'Superman',
     real_name: 'Clark Kent',
@@ -47,11 +14,13 @@ describe('/hero (e2e)', () => {
   it('/hero (POST)', async () => {
     const response = await supertest(app.getHttpServer())
       .post('/hero')
-      .send(createHeroDto)
-      .set('Content-Type', 'application/json')
-      .set('Accept', 'application/json');
+      .set('Content-Type', 'multipart/form-data')
+      .field('nickname', createHeroDto.nickname)
+      .field('real_name', createHeroDto.real_name)
+      .field('origin_description', createHeroDto.origin_description)
+      .field('catch_phrase', createHeroDto.catch_phrase);
+    // .attach('image', './test.jpg');
 
-    console.log(response.body);
     expect(response.status).toBe(201);
     expect(response.body).toHaveProperty('nickname', createHeroDto.nickname);
   });

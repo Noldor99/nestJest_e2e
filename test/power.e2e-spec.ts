@@ -1,39 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Power } from '../src/entity/power.entity';
 import { CreatePowerDto } from 'src/power/dto/create-power.dto';
 import * as supertest from 'supertest';
-import CONNECTION from '../src/database/db.connection';
-import { PowerModule } from '../src/power/power.module';
-import { Hero } from '../src/entity/hero.entity';
+import { app } from './test-setup';
 
 describe('/power (e2e)', () => {
-  let app: INestApplication;
   let createdPowerId: number;
-
-  beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [
-        //@ts-ignore
-        TypeOrmModule.forRoot({
-          ...CONNECTION,
-          entities: [Power, Hero],
-          synchronize: true,
-        }),
-        PowerModule,
-      ],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    await app.init();
-  });
-
-  afterAll(async () => {
-    await app.close();
-  });
 
   it('/power (POST)', async () => {
     const createPowerDto: CreatePowerDto = { power: 'TestPower', heroId: 1 };
